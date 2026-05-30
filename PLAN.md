@@ -49,7 +49,7 @@ You can't `import` those. So **IV is four things working together**:
 
 ## 3. Repository layout (the IV monorepo)
 
-```
+```text
 immaculate-vibes/                      (pnpm workspaces)
 ├── packages/
 │   ├── eslint-config/    @iv/eslint-config     flat config: a11y + security + sonarjs + complexity caps
@@ -106,7 +106,7 @@ immaculate-vibes/                      (pnpm workspaces)
 
 ## 6. The `init` experience
 
-```
+```bash
 npm create immaculate-vibes@latest
 # or, in an existing repo:
 npx immaculate-vibes init
@@ -212,7 +212,7 @@ Email is the most manual (Google won't let you script OAuth-client creation).
   mutation by default. Emits a structured plan + a handoff manifest — exactly
   the "lock in everything an agent needs to take it the rest of the way" goal:
 
-```
+```text
 .iv/handoff.md         human/agent-readable: done ✓, pending ☐, each pending
                        item's required value + where it goes + how to get it
 .iv/setup-state.json   idempotent resume state: completed steps + non-secret

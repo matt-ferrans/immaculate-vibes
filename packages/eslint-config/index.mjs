@@ -99,6 +99,10 @@ export function ivConfig(options = {}) {
     },
     {
       files: o.tests,
+      // Register sonarjs here too: o.tests can include globs outside o.src
+      // (e.g. "**/*.test.{ts,tsx}"), and flat config validates even "off"
+      // rules, so the plugin must be present for the matching scope.
+      plugins: { sonarjs },
       rules: {
         "sonarjs/cognitive-complexity": "off",
       },

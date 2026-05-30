@@ -41,7 +41,7 @@ carefully).
 
 ## Layout
 
-```
+```text
 immaculate-vibes/
 ├── PLAN.md                          design doc (library + scaffolder + sync + wizard)
 └── packages/
