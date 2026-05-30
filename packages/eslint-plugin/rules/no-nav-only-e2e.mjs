@@ -11,12 +11,21 @@
 // heading-only spec is the failure mode this catches.
 
 const TEST_BLOCK_NAMES = new Set(["test", "it"]);
+// Playwright runnable test-case variants. test.describe / beforeEach / step /
+// use are grouping / hooks / config — NOT test cases — so they must not count
+// as test blocks (that would flag a describe/hook wrapper as a "nav-only" test).
+const TEST_MEMBER_VARIANTS = new Set(["only", "skip", "fixme", "fail", "slow"]);
 
 function calleeName(callee) {
   if (callee.type === "Identifier") {
     return callee.name;
   }
-  if (callee.type === "MemberExpression" && callee.object.type === "Identifier") {
+  if (
+    callee.type === "MemberExpression" &&
+    callee.object.type === "Identifier" &&
+    callee.property.type === "Identifier" &&
+    TEST_MEMBER_VARIANTS.has(callee.property.name)
+  ) {
     return callee.object.name;
   }
   return null;

@@ -107,6 +107,18 @@ export default {
           enterBlock(node.callee.object.name, node);
           return;
         }
+        // it.each([...])(name, fn) / test.each — the runnable block is the
+        // OUTER call, whose callee is the it.each(...) builder call. Without
+        // this, expect()s in the callback aren't attributed to any block.
+        if (
+          node.callee.type === "CallExpression" &&
+          node.callee.callee.type === "MemberExpression" &&
+          node.callee.callee.object.type === "Identifier" &&
+          TEST_BLOCK_NAMES.has(node.callee.callee.object.name)
+        ) {
+          enterBlock(node.callee.callee.object.name, node);
+          return;
+        }
         // Count expect() calls inside the current block
         const frame = blockStack[blockStack.length - 1];
         if (!frame) {
@@ -128,6 +140,16 @@ export default {
           node.callee.type === "MemberExpression" &&
           node.callee.object.type === "Identifier" &&
           TEST_BLOCK_NAMES.has(node.callee.object.name)
+        ) {
+          exitBlock();
+          return;
+        }
+        // it.each([...])(name, fn) — mirror the enter handler.
+        if (
+          node.callee.type === "CallExpression" &&
+          node.callee.callee.type === "MemberExpression" &&
+          node.callee.callee.object.type === "Identifier" &&
+          TEST_BLOCK_NAMES.has(node.callee.callee.object.name)
         ) {
           exitBlock();
         }
