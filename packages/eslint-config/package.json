@@ -1,0 +1,24 @@
+{
+  "name": "@iv/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Immaculate Vibes shareable flat ESLint config (incubating; extracted from Anser-Portal).",
+  "type": "module",
+  "exports": {
+    ".": "./index.mjs"
+  },
+  "files": [
+    "index.mjs"
+  ],
+  "dependencies": {
+    "@iv/eslint-plugin": "workspace:*"
+  },
+  "peerDependencies": {
+    "eslint": ">=9",
+    "eslint-config-prettier": "*",
+    "eslint-plugin-no-only-tests": "*",
+    "eslint-plugin-security": "*",
+    "eslint-plugin-sonarjs": "*"
+  },
+  "license": "UNLICENSED"
+}
