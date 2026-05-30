@@ -114,6 +114,8 @@ export default {
           node.callee.type === "CallExpression" &&
           node.callee.callee.type === "MemberExpression" &&
           node.callee.callee.object.type === "Identifier" &&
+          node.callee.callee.property.type === "Identifier" &&
+          node.callee.callee.property.name === "each" &&
           TEST_BLOCK_NAMES.has(node.callee.callee.object.name)
         ) {
           enterBlock(node.callee.callee.object.name, node);
@@ -149,6 +151,8 @@ export default {
           node.callee.type === "CallExpression" &&
           node.callee.callee.type === "MemberExpression" &&
           node.callee.callee.object.type === "Identifier" &&
+          node.callee.callee.property.type === "Identifier" &&
+          node.callee.callee.property.name === "each" &&
           TEST_BLOCK_NAMES.has(node.callee.callee.object.name)
         ) {
           exitBlock();
