@@ -46,15 +46,16 @@ immaculate-vibes/
 ├── PLAN.md                          design doc (library + scaffolder + sync + wizard)
 └── packages/
     ├── eslint-plugin/   @iv/eslint-plugin    the anser-test rules, exposed as iv/*
-    └── eslint-config/   @iv/eslint-config    shareable flat-config factory
+    ├── eslint-config/   @iv/eslint-config    shareable flat-config factory
+    └── gates/           @iv/gates            `iv-gate <name>` CLI (doc-paths; more to come)
 ```
 
 ## Status
 
 | Phase | Scope | State |
 | --- | --- | --- |
-| 0 | staging dir + design doc + fences; lift `@iv/eslint-config` + `@iv/eslint-plugin` | **in progress (this PR)** |
-| 1 | gate scripts as `iv-gate <name>` CLI bins | todo |
+| 0 | staging dir + design doc + fences; lift `@iv/eslint-config` + `@iv/eslint-plugin` | done |
+| 1 | gate scripts as `iv-gate <name>` CLI bins (`@iv/gates`) | **in progress (this PR)** — runner + config loader + `doc-paths` ported; `smell` / `prompt-injection` / `changelog` / `coverage-exclude` / `routes-check` / `coderabbit` to follow |
 | 2 | scaffolder (`init` + templates: shims, docs, `.claude/`) | todo |
 | 3 | sync / doctor (drift detection + safe re-emit) | todo |
 | 4 | project-specific recipes (PDF gate, Railway preview, route manifest) | todo |

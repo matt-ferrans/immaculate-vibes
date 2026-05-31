@@ -1,0 +1,102 @@
+#!/usr/bin/env node
+// iv-gate — the Immaculate Vibes gate runner.
+//
+// One CLI entry point for every IV gate. Scaffolded shims (pre-commit
+// hooks, CI workflow steps) call `npx iv-gate <name>` so the gate logic
+// lives in this versioned package, not duplicated in each consumer repo.
+//
+// Usage:
+//   iv-gate <name> [--json]
+//   iv-gate --list
+//
+// Exit codes: 0 = gate clean, 1 = findings, 2 = usage error.
+//
+// Phase 1 ships one real gate (doc-paths) plus the runner + config loader.
+// Remaining gates (smell, prompt-injection, changelog, coverage-exclude,
+// routes-check, coderabbit) land in later slices behind this same CLI.
+
+import { findProjectRoot, loadConfig } from "../lib/config.mjs";
+import { runDocPaths } from "../lib/doc-paths.mjs";
+
+// Registry of available gates. Each entry: { run, render }.
+//   run(ctx)    → result object with an `ok` boolean.
+//   render(r)   → prints human output; returns nothing.
+const GATES = {
+  "doc-paths": {
+    run: ({ root, config }) => runDocPaths({ root, config: config.docPaths ?? {} }),
+    render: (r) => {
+      if (r.missingDocs.length > 0) {
+        console.warn(`note: doc(s) not present (skipped): ${r.missingDocs.join(", ")}`);
+      }
+      if (r.ok) {
+        console.log(`✓ All path references in ${r.targets.join(", ")} resolve.`);
+        return;
+      }
+      console.error(
+        `\n✗ ${r.findings.length} path reference(s) in docs point at files that no longer exist:\n`,
+      );
+      for (const f of r.findings) {
+        console.error(`  ${f.doc}: \`${f.token}\` (resolved to ${f.resolved})`);
+      }
+      console.error(
+        "\nEither restore the file, update the doc, or add the token to the docPaths.allowlist in iv.config with a one-line reason.\n",
+      );
+    },
+  },
+};
+
+function usage(stream = console.error) {
+  stream(`iv-gate — run an Immaculate Vibes gate
+
+Usage:
+  iv-gate <name> [--json]
+  iv-gate --list
+
+Available gates:
+${Object.keys(GATES)
+  .map((n) => `  - ${n}`)
+  .join("\n")}`);
+}
+
+async function main() {
+  const args = process.argv.slice(2);
+
+  if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
+    usage(console.log);
+    process.exit(args.length === 0 ? 2 : 0);
+  }
+
+  if (args.includes("--list")) {
+    for (const name of Object.keys(GATES)) {
+      console.log(name);
+    }
+    process.exit(0);
+  }
+
+  const name = args[0];
+  const asJson = args.includes("--json");
+  const gate = GATES[name];
+
+  if (!gate) {
+    console.error(`iv-gate: unknown gate "${name}"\n`);
+    usage();
+    process.exit(2);
+  }
+
+  const root = findProjectRoot();
+  const config = await loadConfig(root);
+  const result = gate.run({ root, config });
+
+  if (asJson) {
+    console.log(JSON.stringify({ gate: name, ...result }, null, 2));
+  } else {
+    gate.render(result);
+  }
+
+  process.exit(result.ok ? 0 : 1);
+}
+
+main().catch((err) => {
+  console.error(`iv-gate: ${err?.stack ?? err}`);
+  process.exit(2);
+});
