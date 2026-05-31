@@ -20,6 +20,7 @@ import { runDocPaths } from "../lib/doc-paths.mjs";
 import { runPromptInjection } from "../lib/prompt-injection.mjs";
 import { runChangelog } from "../lib/changelog.mjs";
 import { runRoutes } from "../lib/routes.mjs";
+import { runCoverageExclude } from "../lib/coverage-exclude.mjs";
 
 // Registry of available gates. Each entry: { run, render }.
 //   run(ctx)    → result object with an `ok` boolean.
@@ -102,6 +103,35 @@ const GATES = {
       console.error(
         `\nroutes: ${r.manifest} is out of sync with the app directory.\n` +
           "Run `iv-gate routes --sync` and commit the result.\n",
+      );
+    },
+  },
+  "coverage-exclude": {
+    run: ({ root, config }) =>
+      runCoverageExclude({ root, config: config.coverageExclude ?? {} }),
+    render: (r) => {
+      if (r.skipped) {
+        console.warn(`coverage-exclude: skipped — ${r.reason}`);
+        return;
+      }
+      if (r.ok) {
+        console.log(
+          r.added.length > 0
+            ? `coverage-exclude: ${r.added.length} new exclusion(s); all justified with a TODO comment.`
+            : "coverage-exclude: no new exclusions on this branch.",
+        );
+        return;
+      }
+      console.error(
+        `\ncoverage-exclude: ${r.addedWithoutTodo.length} new exclusion(s) without a TODO comment:\n`,
+      );
+      for (const t of r.addedWithoutTodo) {
+        console.error(`  + ${t}`);
+      }
+      console.error(
+        "\nAdd an inline `// TODO(...): <reason>` comment on the same line, or remove the\n" +
+          "exclusion. Excluding source from coverage is policy laundering — if you must do\n" +
+          "it, leave the reason in the diff.\n",
       );
     },
   },
