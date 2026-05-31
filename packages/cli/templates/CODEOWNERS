@@ -1,0 +1,15 @@
+# Code owners — auto-request review on sensitive paths.
+#
+# Replace @your-org/maintainers with real GitHub handles/teams. On the free
+# plan this auto-requests review but does not block merge without a branch
+# protection rule; add it to required reviews to make it enforcing.
+
+# IV-managed config and the framework files themselves.
+/iv.config.mjs                 @your-org/maintainers
+/.iv/                          @your-org/maintainers
+/.github/workflows/            @your-org/maintainers
+/.pre-commit-config.yaml       @your-org/maintainers
+
+# Add your project's sensitive paths below, e.g.:
+# /src/lib/auth/               @your-org/maintainers
+# /src/lib/db/schema.ts        @your-org/maintainers

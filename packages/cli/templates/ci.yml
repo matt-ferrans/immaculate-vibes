@@ -1,0 +1,48 @@
+# Immaculate Vibes CI — runs the iv-gate quality gates on every PR and push.
+#
+# This is a thin shim: the gate logic lives in @iv/gates (a versioned
+# dependency), so `npm update @iv/gates` upgrades behavior without editing
+# this workflow. Add your project's own jobs (test, build, e2e) alongside it.
+#
+# The gates here are the dependency-free ones that run anywhere. `changelog`,
+# `coverage-exclude`, and `routes` are opt-in per project — uncomment the
+# ones you've configured in iv.config.
+
+name: IV gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  iv-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # doc-paths/banned-patterns scan the working tree; coverage-exclude
+          # diffs against the base, so fetch full history when you enable it.
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: doc-paths
+        run: npx iv-gate doc-paths
+      - name: prompt-injection
+        run: npx iv-gate prompt-injection
+      - name: banned-patterns
+        run: npx iv-gate banned-patterns
+      # - name: changelog
+      #   run: npx iv-gate changelog
+      # - name: routes
+      #   run: npx iv-gate routes
+      # - name: coverage-exclude
+      #   run: npx iv-gate coverage-exclude
+      #   env:
+      #     BASE_REF: origin/${{ github.base_ref || 'main' }}
