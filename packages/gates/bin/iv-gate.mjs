@@ -21,6 +21,7 @@ import { runPromptInjection } from "../lib/prompt-injection.mjs";
 import { runChangelog } from "../lib/changelog.mjs";
 import { runRoutes } from "../lib/routes.mjs";
 import { runCoverageExclude } from "../lib/coverage-exclude.mjs";
+import { runBannedPatterns } from "../lib/banned-patterns.mjs";
 
 // Registry of available gates. Each entry: { run, render }.
 //   run(ctx)    → result object with an `ok` boolean.
@@ -132,6 +133,25 @@ const GATES = {
         "\nAdd an inline `// TODO(...): <reason>` comment on the same line, or remove the\n" +
           "exclusion. Excluding source from coverage is policy laundering — if you must do\n" +
           "it, leave the reason in the diff.\n",
+      );
+    },
+  },
+  "banned-patterns": {
+    run: ({ root, config }) =>
+      runBannedPatterns({ root, config: config.bannedPatterns ?? {} }),
+    render: (r) => {
+      if (r.ok) {
+        console.log(`banned-patterns: scanned ${r.scanned} files, no findings`);
+        return;
+      }
+      console.error(`\nbanned-patterns: ${r.findings.length} finding(s):\n`);
+      for (const f of r.findings) {
+        console.error(`  ${f.file}:${f.line}  ${f.detail}`);
+      }
+      console.error(
+        "\nThese are 'silent compromise' patterns the house rules forbid: empty catch\n" +
+          "blocks, error-swallowing returns, sentinel name fallbacks, and TODO markers\n" +
+          "without a tracked ref. Fix the file rather than the regex.\n",
       );
     },
   },

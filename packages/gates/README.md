@@ -20,9 +20,12 @@ iv-gate --list            # list available gates
 | `changelog` | `scripts/sync-changelog.ts` | Parses a Keep-a-Changelog `CHANGELOG.md` and keeps a bundled type-safe mirror in sync. `iv-gate changelog` checks (fails if stale); `iv-gate changelog --sync` rewrites the mirror. |
 | `routes` | `scripts/sync-routes-manifest.ts` | Scans an app dir for page files, derives the route list (minus an exclude set), and keeps a manifest in sync. `iv-gate routes` checks; `iv-gate routes --sync` rewrites. Manifest body is overridable via `routes.render` for app-specific shapes. |
 | `coverage-exclude` | `scripts/dev/check-coverage-exclude-diff.ts` | Fails if a coverage config's `exclude` list grew (vs a git base ref) without an inline `// TODO(...)` comment justifying each added entry. Set `BASE_REF` env or `coverageExclude.baseRef`. |
+| `banned-patterns` | `scripts/dev/smell/banned-patterns.ts` | Scans tracked source for "silent compromise" anti-patterns: empty catch blocks, error-swallowing returns, sentinel name fallbacks (`"Unknown"`/`"N/A"`…), and TODO/FIXME markers without a `(ref)`. The pure, dependency-free core of Anser's smell system. |
 
-Remaining Anser gates — `smell`, `coderabbit` — land in later Phase 1
-slices behind this same CLI.
+The full aggregate smell report (`jscpd` duplication, `knip` unused
+exports/files/deps, eslint complexity) shells out to those tools and lands
+in a later phase; `banned-patterns` is the part that runs with zero deps.
+The `coderabbit` gate (GitHub I/O) is also a later slice.
 
 ## Config
 
