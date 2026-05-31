@@ -25,7 +25,17 @@ iv-gate --list            # list available gates
 The full aggregate smell report (`jscpd` duplication, `knip` unused
 exports/files/deps, eslint complexity) shells out to those tools and lands
 in a later phase; `banned-patterns` is the part that runs with zero deps.
-The `coderabbit` gate (GitHub I/O) is also a later slice.
+
+### Library-only: `coderabbit-evaluate`
+
+The pure CodeRabbit-gate **evaluator** (`@iv/gates/coderabbit-evaluate`) is
+exported as a library, not wired into the `iv-gate` CLI. It's a pure
+function from GitHub-API-shaped data (PR title, inline comments, reviews,
+threads, commits) to a verdict (`clean` / `skip` / `pending` /
+`unresolved` / `fresh-agent` / `error`) plus `render()` and `exitCode()`.
+The `gh`-fetching wrapper that feeds it — the non-portable, network-bound
+half — lands in a later slice; exporting the evaluator now keeps the
+testable core available and matches how Anser split it out for unit tests.
 
 ## Config
 

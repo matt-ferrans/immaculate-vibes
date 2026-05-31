@@ -55,7 +55,7 @@ immaculate-vibes/
 | Phase | Scope | State |
 | --- | --- | --- |
 | 0 | staging dir + design doc + fences; lift `@iv/eslint-config` + `@iv/eslint-plugin` | done |
-| 1 | gate scripts as `iv-gate <name>` CLI bins (`@iv/gates`) | **in progress (this PR)** — runner + config loader + `doc-paths` ported; `smell` / `prompt-injection` / `changelog` / `coverage-exclude` / `routes-check` / `coderabbit` to follow |
+| 1 | gate scripts as `iv-gate <name>` CLI bins (`@iv/gates`) | **in progress (this PR)** — runner + config loader + 6 gates ported & execution-validated: `doc-paths`, `prompt-injection`, `changelog`, `routes`, `coverage-exclude`, `banned-patterns`, plus the pure `coderabbit-evaluate` library. Remaining: the aggregate `smell` report (jscpd/knip/eslint, deps-heavy) and the `coderabbit` GitHub-fetch wrapper |
 | 2 | scaffolder (`init` + templates: shims, docs, `.claude/`) | todo |
 | 3 | sync / doctor (drift detection + safe re-emit) | todo |
 | 4 | project-specific recipes (PDF gate, Railway preview, route manifest) | todo |

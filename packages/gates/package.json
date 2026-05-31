@@ -9,6 +9,12 @@
   },
   "exports": {
     "./doc-paths": "./lib/doc-paths.mjs",
+    "./prompt-injection": "./lib/prompt-injection.mjs",
+    "./changelog": "./lib/changelog.mjs",
+    "./routes": "./lib/routes.mjs",
+    "./coverage-exclude": "./lib/coverage-exclude.mjs",
+    "./banned-patterns": "./lib/banned-patterns.mjs",
+    "./coderabbit-evaluate": "./lib/coderabbit-evaluate.mjs",
     "./config": "./lib/config.mjs"
   },
   "files": [
