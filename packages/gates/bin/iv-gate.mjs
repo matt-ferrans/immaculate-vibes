@@ -19,6 +19,7 @@ import { findProjectRoot, loadConfig } from "../lib/config.mjs";
 import { runDocPaths } from "../lib/doc-paths.mjs";
 import { runPromptInjection } from "../lib/prompt-injection.mjs";
 import { runChangelog } from "../lib/changelog.mjs";
+import { runRoutes } from "../lib/routes.mjs";
 
 // Registry of available gates. Each entry: { run, render }.
 //   run(ctx)    → result object with an `ok` boolean.
@@ -83,6 +84,24 @@ const GATES = {
       console.error(
         `\nchangelog: ${r.out} is out of sync with the source changelog.\n` +
           "Run `iv-gate changelog --sync` and commit the result.\n",
+      );
+    },
+  },
+  routes: {
+    run: ({ root, config, flags }) =>
+      runRoutes({ root, config: config.routes ?? {}, sync: flags.includes("--sync") }),
+    render: (r) => {
+      if (r.mode === "sync") {
+        console.log(`routes: wrote ${r.routes} routes to ${r.manifest}`);
+        return;
+      }
+      if (r.ok) {
+        console.log(`routes: manifest in sync (${r.routes} routes).`);
+        return;
+      }
+      console.error(
+        `\nroutes: ${r.manifest} is out of sync with the app directory.\n` +
+          "Run `iv-gate routes --sync` and commit the result.\n",
       );
     },
   },

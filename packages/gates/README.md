@@ -18,9 +18,10 @@ iv-gate --list            # list available gates
 | `doc-paths` | `scripts/dev/check-doc-paths.ts` | Every backtick-quoted file/dir path in the configured docs (default: `CLAUDE.md`, `AGENTS.md`, `docs/testing-obligations.md`) actually exists. Catches stale references that poison an agent's context. |
 | `prompt-injection` | `scripts/dev/check-prompt-injection.ts` | Scans tracked source for prompt-injection marker strings (`ignore previous instructions`, fake system/assistant prefixes, `[INST]` markers). A tripwire for hostile content arriving via review channels. |
 | `changelog` | `scripts/sync-changelog.ts` | Parses a Keep-a-Changelog `CHANGELOG.md` and keeps a bundled type-safe mirror in sync. `iv-gate changelog` checks (fails if stale); `iv-gate changelog --sync` rewrites the mirror. |
+| `routes` | `scripts/sync-routes-manifest.ts` | Scans an app dir for page files, derives the route list (minus an exclude set), and keeps a manifest in sync. `iv-gate routes` checks; `iv-gate routes --sync` rewrites. Manifest body is overridable via `routes.render` for app-specific shapes. |
 
-Remaining Anser gates — `smell`, `coverage-exclude`, `routes-check`,
-`coderabbit` — land in later Phase 1 slices behind this same CLI.
+Remaining Anser gates — `smell`, `coverage-exclude`, `coderabbit` — land
+in later Phase 1 slices behind this same CLI.
 
 ## Config
 
