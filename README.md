@@ -53,6 +53,19 @@ immaculate-vibes/
 
 ## Status
 
+> **Known gap — IV code is not yet under an automated gate.** Everything in
+> `immaculate-vibes/` is fenced out of Anser's own tsc / eslint / prettier /
+> jscpd / smell checks (see "Incubation rules" above), and Anser's gates are
+> the wrong shape for a standalone library anyway (app-tuned thresholds,
+> `src/`-scoped scans, and knip would flag the whole package as "unused" since
+> nothing imports it yet). So each gate/scaffolder slice is currently validated
+> **by hand via execution** (run against fixtures + the real repo), not by CI.
+> This is a quality-coverage gap, not a production risk — nothing imports IV,
+> so it cannot affect the app. It closes at the **dogfood flip**: when Anser
+> imports `@iv/*` and the fences come down, IV gets linted / typechecked /
+> tested as first-class code. (Decided 2026-05: defer IV's own gates to the
+> flip rather than contort Anser's config around it.)
+
 | Phase | Scope | State |
 | --- | --- | --- |
 | 0 | staging dir + design doc + fences; lift `@iv/eslint-config` + `@iv/eslint-plugin` | done |
