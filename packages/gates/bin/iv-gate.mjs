@@ -18,6 +18,7 @@
 import { findProjectRoot, loadConfig } from "../lib/config.mjs";
 import { runDocPaths } from "../lib/doc-paths.mjs";
 import { runPromptInjection } from "../lib/prompt-injection.mjs";
+import { runChangelog } from "../lib/changelog.mjs";
 
 // Registry of available gates. Each entry: { run, render }.
 //   run(ctx)    → result object with an `ok` boolean.
@@ -67,13 +68,32 @@ const GATES = {
       );
     },
   },
+  changelog: {
+    run: ({ root, config, flags }) =>
+      runChangelog({ root, config: config.changelog ?? {}, sync: flags.includes("--sync") }),
+    render: (r) => {
+      if (r.mode === "sync") {
+        console.log(`changelog: wrote ${r.entries} entries to ${r.out}`);
+        return;
+      }
+      if (r.ok) {
+        console.log(`changelog: in sync (${r.entries} entries).`);
+        return;
+      }
+      console.error(
+        `\nchangelog: ${r.out} is out of sync with the source changelog.\n` +
+          "Run `iv-gate changelog --sync` and commit the result.\n",
+      );
+    },
+  },
 };
 
 function usage(stream = console.error) {
   stream(`iv-gate — run an Immaculate Vibes gate
 
 Usage:
-  iv-gate <name> [--json]
+  iv-gate <name> [--json] [gate-specific flags]
+  iv-gate changelog [--sync]   # --sync rewrites the mirror; default checks it
   iv-gate --list
 
 Available gates:
@@ -109,7 +129,10 @@ async function main() {
 
   const root = findProjectRoot();
   const config = await loadConfig(root);
-  const result = gate.run({ root, config });
+  // Pass remaining args (minus the gate name and --json) as flags so gates
+  // like `changelog` can read mode switches such as --sync.
+  const flags = args.slice(1).filter((a) => a !== "--json");
+  const result = gate.run({ root, config, flags });
 
   if (asJson) {
     console.log(JSON.stringify({ gate: name, ...result }, null, 2));
