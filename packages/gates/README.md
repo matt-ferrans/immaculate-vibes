@@ -16,10 +16,11 @@ iv-gate --list            # list available gates
 | Gate | Lifted from | What it checks |
 | --- | --- | --- |
 | `doc-paths` | `scripts/dev/check-doc-paths.ts` | Every backtick-quoted file/dir path in the configured docs (default: `CLAUDE.md`, `AGENTS.md`, `docs/testing-obligations.md`) actually exists. Catches stale references that poison an agent's context. |
+| `prompt-injection` | `scripts/dev/check-prompt-injection.ts` | Scans tracked source for prompt-injection marker strings (`ignore previous instructions`, fake system/assistant prefixes, `[INST]` markers). A tripwire for hostile content arriving via review channels. |
 
-Remaining Anser gates — `smell`, `prompt-injection`, `changelog`,
-`coverage-exclude`, `routes-check`, `coderabbit` — land in later Phase 1
-slices behind this same CLI.
+Remaining Anser gates — `smell`, `changelog`, `coverage-exclude`,
+`routes-check`, `coderabbit` — land in later Phase 1 slices behind this
+same CLI.
 
 ## Config
 

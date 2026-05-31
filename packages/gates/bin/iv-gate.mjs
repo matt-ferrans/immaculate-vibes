@@ -17,6 +17,7 @@
 
 import { findProjectRoot, loadConfig } from "../lib/config.mjs";
 import { runDocPaths } from "../lib/doc-paths.mjs";
+import { runPromptInjection } from "../lib/prompt-injection.mjs";
 
 // Registry of available gates. Each entry: { run, render }.
 //   run(ctx)    → result object with an `ok` boolean.
@@ -40,6 +41,29 @@ const GATES = {
       }
       console.error(
         "\nEither restore the file, update the doc, or add the token to the docPaths.allowlist in iv.config with a one-line reason.\n",
+      );
+    },
+  },
+  "prompt-injection": {
+    run: ({ root, config }) =>
+      runPromptInjection({ root, config: config.promptInjection ?? {} }),
+    render: (r) => {
+      if (r.ok) {
+        console.log(`prompt-injection: scanned ${r.scanned} files, no matches`);
+        return;
+      }
+      console.error(
+        `\nprompt-injection: ${r.findings.length} match(es) found in committed source.\n`,
+      );
+      for (const f of r.findings) {
+        console.error(`  ${f.file}:${f.line}  [${f.pattern}]`);
+        console.error(`      ${f.snippet}`);
+      }
+      console.error(
+        "\nThese patterns are tripwires for prompt-injection content arriving through\n" +
+          "external review channels. If the match is a real injection attempt, revert it\n" +
+          "and notify a human. If it's legitimate prose documenting the attack, move it\n" +
+          "under an excluded path or add a narrow allowlist entry in iv.config.\n",
       );
     },
   },
