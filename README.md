@@ -47,7 +47,8 @@ immaculate-vibes/
 └── packages/
     ├── eslint-plugin/   @iv/eslint-plugin    the anser-test rules, exposed as iv/*
     ├── eslint-config/   @iv/eslint-config    shareable flat-config factory
-    └── gates/           @iv/gates            `iv-gate <name>` CLI (doc-paths; more to come)
+    ├── gates/           @iv/gates            `iv-gate <name>` CLI (6 gates + coderabbit evaluator)
+    └── cli/             immaculate-vibes     `init` scaffolder (stamps config + hook shims)
 ```
 
 ## Status
@@ -56,7 +57,7 @@ immaculate-vibes/
 | --- | --- | --- |
 | 0 | staging dir + design doc + fences; lift `@iv/eslint-config` + `@iv/eslint-plugin` | done |
 | 1 | gate scripts as `iv-gate <name>` CLI bins (`@iv/gates`) | **in progress (this PR)** — runner + config loader + 6 gates ported & execution-validated: `doc-paths`, `prompt-injection`, `changelog`, `routes`, `coverage-exclude`, `banned-patterns`, plus the pure `coderabbit-evaluate` library. Remaining: the aggregate `smell` report (jscpd/knip/eslint, deps-heavy) and the `coderabbit` GitHub-fetch wrapper |
-| 2 | scaffolder (`init` + templates: shims, docs, `.claude/`) | todo |
+| 2 | scaffolder (`init` + templates: shims, docs, `.claude/`) | **in progress (this PR)** — `immaculate-vibes init` engine (version-stamped, re-runnable, `--dry-run`/`--force`/`--tier`) + first templates (`iv.config.mjs`, pre-commit shim calling `iv-gate`). More templates (CI workflows, `.claude/`, docs, CODEOWNERS) to follow |
 | 3 | sync / doctor (drift detection + safe re-emit) | todo |
 | 4 | project-specific recipes (PDF gate, Railway preview, route manifest) | todo |
 | 5 | setup wizard (Railway/GitHub/CodeRabbit/Sentry/email providers) | todo |

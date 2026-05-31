@@ -1,0 +1,47 @@
+# Pre-commit hooks wired to Immaculate Vibes gates.
+#
+# The gate logic lives in @iv/gates (a versioned dependency); these hooks
+# are thin shims that call `npx iv-gate <name>`, so `npm update @iv/gates`
+# upgrades behavior without editing this file. Install the framework once
+# with `pipx install pre-commit`, then `pre-commit install`.
+#
+# This is a starting point — add your project's own hooks (eslint, prettier,
+# etc.) alongside these.
+
+default_install_hook_types: [pre-commit, pre-push, commit-msg]
+default_stages: [pre-commit]
+
+repos:
+  - repo: local
+    hooks:
+      # Backtick-quoted path references in docs must resolve.
+      - id: iv-doc-paths
+        name: iv-gate doc-paths
+        entry: npx iv-gate doc-paths
+        language: system
+        pass_filenames: false
+        files: '\.(md|mdx)$'
+
+      # Tripwire for prompt-injection marker strings in committed source.
+      - id: iv-prompt-injection
+        name: iv-gate prompt-injection
+        entry: npx iv-gate prompt-injection
+        language: system
+        pass_filenames: false
+
+      # "Silent compromise" anti-patterns (empty catch, sentinel fallbacks,
+      # un-accountable TODOs).
+      - id: iv-banned-patterns
+        name: iv-gate banned-patterns
+        entry: npx iv-gate banned-patterns
+        language: system
+        pass_filenames: false
+        files: '\.(ts|tsx)$'
+
+      # Changelog mirror must be in sync (pre-push: it's a fuller check).
+      - id: iv-changelog
+        name: iv-gate changelog
+        entry: npx iv-gate changelog
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
