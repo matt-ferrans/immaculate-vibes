@@ -17,6 +17,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { init } from "../lib/init.mjs";
 import { diagnose, sync } from "../lib/sync.mjs";
+import { add } from "../lib/add.mjs";
+import { listRecipes } from "../lib/recipes.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -33,15 +35,19 @@ function usage(stream = console.log) {
   stream(`immaculate-vibes — scaffold + maintain the Immaculate Vibes guardrail files
 
 Usage:
-  immaculate-vibes init    [--dry-run] [--force] [--tier core,recommended]
-  immaculate-vibes doctor  [--json]
-  immaculate-vibes sync    [--dry-run] [--force]
+  immaculate-vibes init           [--dry-run] [--force] [--tier core,recommended]
+  immaculate-vibes doctor         [--json]
+  immaculate-vibes sync           [--dry-run] [--force]
+  immaculate-vibes add <recipe>   [--dry-run] [--force]
+  immaculate-vibes add --list
 
 Commands:
   init     stamp config + hook/CI/agent shims into this repo (safe to re-run)
   doctor   report template drift (read-only); exits 1 if anything needs action
   sync     re-emit outdated/missing templates; --force also rewrites
            locally-modified files
+  add      stamp an opt-in, project-specific recipe (pdf-gate, railway-preview,
+           route-manifest); --list shows available recipes
 
 Options:
   --dry-run   show what would change, write nothing
@@ -52,12 +58,13 @@ Options:
 }
 
 function parseFlags(argv) {
-  const flags = { dryRun: false, force: false, json: false, tiers: undefined };
+  const flags = { dryRun: false, force: false, json: false, list: false, tiers: undefined };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--dry-run") flags.dryRun = true;
     else if (a === "--force") flags.force = true;
     else if (a === "--json") flags.json = true;
+    else if (a === "--list") flags.list = true;
     else if (a === "--tier") {
       flags.tiers = (argv[++i] ?? "")
         .split(",")
@@ -165,6 +172,43 @@ function runSync(flags) {
   return 0;
 }
 
+function runAdd(argv, flags) {
+  // argv here is everything after "add". First non-flag token is the recipe.
+  const recipe = argv.find((a) => !a.startsWith("-"));
+
+  if (flags.list || !recipe) {
+    console.log("Available recipes:\n");
+    for (const r of listRecipes()) {
+      console.log(`  ${r.name.padEnd(16)} ${r.summary}`);
+    }
+    console.log("\nAdd one with: immaculate-vibes add <recipe>");
+    // No recipe given and not an explicit --list is a usage miss.
+    return flags.list ? 0 : 2;
+  }
+
+  const root = process.cwd();
+  const result = add({ root, recipe, version: version(), ...flags });
+
+  if (result.unknownRecipe) {
+    console.error(`immaculate-vibes add: unknown recipe "${recipe}"\n`);
+    console.error("Run `immaculate-vibes add --list` to see available recipes.");
+    return 2;
+  }
+
+  const verb = flags.dryRun ? "Would add" : "Added";
+  console.log(`${verb} recipe "${recipe}":\n`);
+  for (const a of result.actions) {
+    console.log(`  ${a.action.padEnd(18)} ${a.dest}`);
+  }
+  if (result.followUp.length > 0) {
+    console.log("\nNext steps:");
+    for (const line of result.followUp) {
+      console.log(`  ${line}`);
+    }
+  }
+  return 0;
+}
+
 function main() {
   const argv = process.argv.slice(2);
 
@@ -186,6 +230,9 @@ function main() {
       break;
     case "sync":
       code = runSync(flags);
+      break;
+    case "add":
+      code = runAdd(argv.slice(1), flags);
       break;
     default:
       console.error(`immaculate-vibes: unknown command "${command}"\n`);

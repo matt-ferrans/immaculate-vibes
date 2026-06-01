@@ -1,0 +1,20 @@
+{
+  "$iv": "iv:managed recipe stub (railway-preview). REFERENCE ONLY — do not point Railway at this file. Merge the parts you need into your real railway.json.",
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE"
+  },
+  "deploy": {
+    "startCommand": "node server.js",
+    "healthcheckPath": "/api/health",
+    "restartPolicyType": "ON_FAILURE"
+  },
+  "environments": {
+    "pr": {
+      "deploy": {
+        "//": "Per-PR preview overrides. Seed demo data on top of base, disable real email.",
+        "preDeployCommand": "TODO(you): your migrate + demo-seed command"
+      }
+    }
+  }
+}

@@ -1,0 +1,30 @@
+name: IV PDF e2e
+
+# Path-gated: only runs when the render surface changes. Adjust `paths` to
+# match your app's render code + Dockerfile.
+on:
+  pull_request:
+    paths:
+      # TODO(you): your render surface.
+      - "src/**/pdf-render*"
+      - "src/app/print/**"
+      - "Dockerfile"
+      - ".dockerignore"
+      - "scripts/iv/pdf-e2e.sh"
+  push:
+    branches: [release]
+
+permissions:
+  contents: read
+
+jobs:
+  pdf-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run the PDF gate
+        run: bash scripts/iv/pdf-e2e.sh
+        env:
+          PDF_PATH: ${{ vars.IV_PDF_PATH }}
+          LOGIN_EMAIL: ${{ secrets.IV_PDF_LOGIN_EMAIL }}
+          LOGIN_PASSWORD: ${{ secrets.IV_PDF_LOGIN_PASSWORD }}
