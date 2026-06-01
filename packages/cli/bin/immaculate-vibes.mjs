@@ -19,6 +19,9 @@ import { init } from "../lib/init.mjs";
 import { diagnose, sync } from "../lib/sync.mjs";
 import { add } from "../lib/add.mjs";
 import { listRecipes } from "../lib/recipes.mjs";
+import { buildPlan, buildHandoff } from "../lib/setup.mjs";
+import { listProviders } from "../lib/providers.mjs";
+import { mkdirSync, writeFileSync } from "node:fs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -40,6 +43,7 @@ Usage:
   immaculate-vibes sync           [--dry-run] [--force]
   immaculate-vibes add <recipe>   [--dry-run] [--force]
   immaculate-vibes add --list
+  immaculate-vibes setup          [--services a,b] [--json]
 
 Commands:
   init     stamp config + hook/CI/agent shims into this repo (safe to re-run)
@@ -48,6 +52,9 @@ Commands:
            locally-modified files
   add      stamp an opt-in, project-specific recipe (pdf-gate, railway-preview,
            route-manifest); --list shows available recipes
+  setup    plan service onboarding (Railway/GitHub/CodeRabbit/Sentry/email/
+           secrets) and write a handoff manifest. PLAN-ONLY: never mutates
+           anything outward — it tells you (or an agent) what to set where
 
 Options:
   --dry-run   show what would change, write nothing
@@ -58,13 +65,26 @@ Options:
 }
 
 function parseFlags(argv) {
-  const flags = { dryRun: false, force: false, json: false, list: false, tiers: undefined };
+  const flags = {
+    dryRun: false,
+    force: false,
+    json: false,
+    list: false,
+    tiers: undefined,
+    services: undefined,
+  };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--dry-run") flags.dryRun = true;
     else if (a === "--force") flags.force = true;
     else if (a === "--json") flags.json = true;
     else if (a === "--list") flags.list = true;
+    else if (a === "--services") {
+      flags.services = (argv[++i] ?? "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
     else if (a === "--tier") {
       flags.tiers = (argv[++i] ?? "")
         .split(",")
@@ -209,6 +229,94 @@ function runAdd(argv, flags) {
   return 0;
 }
 
+function renderHandoffMarkdown(handoff) {
+  const lines = [];
+  lines.push("# Immaculate Vibes — setup handoff", "");
+  lines.push(`Generated ${handoff.generatedAt} · mode: **${handoff.mode}**`, "");
+  lines.push(
+    "This is a PLAN. Nothing was created or changed. It records what each service",
+    "needs and where each variable must land, so a human or an agent can finish.",
+    "Secret *values* are never recorded here — only how to obtain them.",
+    "",
+    "## Services",
+    "",
+  );
+  for (const s of handoff.services) {
+    lines.push(`- **${s.id}** — ${s.error ?? s.summary}`);
+  }
+  lines.push("", "## Variable routing (set each value at these destinations)", "");
+  for (const [dest, vars] of Object.entries(handoff.routing)) {
+    lines.push(`### ${dest}`);
+    for (const v of vars) {
+      lines.push(`- \`${v.name}\`${v.secret ? " 🔒" : ""} (${v.provider}, ${v.source})`);
+    }
+    lines.push("");
+  }
+  lines.push("## Variables — how to obtain", "");
+  for (const v of handoff.variables) {
+    const req = v.required ? "required" : "optional";
+    lines.push(`- \`${v.name}\` (${req}${v.secret ? ", secret" : ""}): ${v.howTo ?? "—"}`);
+  }
+  lines.push("", "## Manual steps (only a human can do these)", "");
+  for (const m of handoff.manualSteps) {
+    lines.push(`- [ ] (${m.provider}) ${m.step}`);
+  }
+  lines.push("");
+  return lines.join("\n");
+}
+
+function runSetup(flags) {
+  // --list shows the available providers and exits.
+  if (flags.list) {
+    console.log("Available services:\n");
+    for (const p of listProviders()) {
+      console.log(`  ${p.id.padEnd(12)} ${p.summary}`);
+    }
+    return 0;
+  }
+
+  const root = process.cwd();
+  const plan = buildPlan({ services: flags.services });
+  const handoff = buildHandoff(plan);
+
+  // Write the handoff manifest (machine + human readable). No secrets.
+  const dir = join(root, ".iv");
+  if (!flags.dryRun) {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, "handoff.json"), `${JSON.stringify(handoff, null, 2)}\n`);
+    writeFileSync(join(dir, "handoff.md"), renderHandoffMarkdown(handoff));
+  }
+
+  if (flags.json) {
+    console.log(JSON.stringify(handoff, null, 2));
+    return 0;
+  }
+
+  console.log("immaculate-vibes setup — PLAN ONLY (nothing was created or changed).\n");
+  console.log("Services:");
+  for (const s of plan.services) {
+    if (s.error) {
+      console.log(`  ${s.id.padEnd(12)} ⚠️  ${s.error}`);
+    } else {
+      console.log(
+        `  ${s.id.padEnd(12)} ${s.varCount} var(s), ${s.autoCount} automatable, ${s.manualCount} manual`,
+      );
+    }
+  }
+  console.log(
+    `\n${plan.summary.vars} variable(s) (${plan.summary.secrets} secret), ` +
+      `${plan.summary.manualSteps} manual step(s).`,
+  );
+  if (!flags.dryRun) {
+    console.log("\nWrote .iv/handoff.json and .iv/handoff.md — the contract to finish setup.");
+  }
+  console.log(
+    "\nThis wizard does not provision anything on its own. Review the handoff,\n" +
+      "then run each step (or hand it to an agent that has the credentials).",
+  );
+  return 0;
+}
+
 function main() {
   const argv = process.argv.slice(2);
 
@@ -233,6 +341,9 @@ function main() {
       break;
     case "add":
       code = runAdd(argv.slice(1), flags);
+      break;
+    case "setup":
+      code = runSetup(flags);
       break;
     default:
       console.error(`immaculate-vibes: unknown command "${command}"\n`);
