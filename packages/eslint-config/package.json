@@ -20,5 +20,5 @@
     "eslint-plugin-security": "*",
     "eslint-plugin-sonarjs": "*"
   },
-  "license": "UNLICENSED"
+  "license": "MIT"
 }
