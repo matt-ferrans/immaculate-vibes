@@ -11,7 +11,7 @@
     "index.mjs"
   ],
   "dependencies": {
-    "@iv/eslint-plugin": "workspace:*"
+    "@iv/eslint-plugin": "*"
   },
   "peerDependencies": {
     "eslint": ">=9",
