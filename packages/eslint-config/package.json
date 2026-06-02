@@ -11,7 +11,7 @@
     "index.mjs"
   ],
   "dependencies": {
-    "@iv/eslint-plugin": "*"
+    "@iv/eslint-plugin": "git+https://github.com/matt-ferrans/immaculate-vibes.git#main:packages/eslint-plugin"
   },
   "peerDependencies": {
     "eslint": ">=9",
